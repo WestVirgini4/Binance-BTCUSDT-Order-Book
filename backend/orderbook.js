@@ -11,10 +11,14 @@ class OrderBook {
   }
 
   async initialize() {
-    console.log('กำลังดึงข้อมูล snapshot จาก Binance...');
-    await this.fetchSnapshot();
     console.log('กำลังเชื่อมต่อ Binance WebSocket...');
     this.connectBinanceWebSocket();
+    // รอให้ WebSocket เชื่อมต่อแล้วค่อยดึง snapshot
+    await new Promise(resolve => {
+      this.binanceWs.on('open', resolve);
+    });
+    console.log('กำลังดึงข้อมูล snapshot จาก Binance...');
+    await this.fetchSnapshot();
   }
 
   async fetchSnapshot() {
@@ -34,7 +38,14 @@ class OrderBook {
         this.asks.set(price, qty);
       });
 
-      console.log(`Snapshot loaded: ${bids.length} bids, ${asks.length} asks`);
+      console.log(`Snapshot loaded: ${bids.length} bids, ${asks.length} asks, lastUpdateId: ${this.lastUpdateId}`);
+
+      // ตอนนี้ process buffered events
+      console.log('🔄 Processing', this.eventBuffer.length, 'buffered events');
+      this.eventBuffer.forEach(event => {
+        this.processDepthUpdate(event);
+      });
+      this.eventBuffer = [];
     } catch (error) {
       console.error('Error fetching snapshot:', error);
       throw error;
@@ -42,7 +53,7 @@ class OrderBook {
   }
 
   connectBinanceWebSocket() {
-    console.log('กำลังเชื่อมต่อ Binance WebSocket...');
+    this.eventBuffer = [];
     this.binanceWs = new WebSocket('wss://stream.binance.us:9443/ws/btcusdt@depth@100ms');
 
     this.binanceWs.on('open', () => {
@@ -53,7 +64,14 @@ class OrderBook {
       try {
         const event = JSON.parse(data);
         console.log('📥 ได้รับข้อมูลจาก Binance:', event.E || 'unknown');
-        this.processDepthUpdate(event);
+
+        if (this.lastUpdateId === 0) {
+          // ยังไม่ได้ snapshot ให้ buffer events ไว้ก่อน
+          this.eventBuffer.push(event);
+          console.log('📦 Buffer event:', event.u, 'Total buffered:', this.eventBuffer.length);
+        } else {
+          this.processDepthUpdate(event);
+        }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
       }

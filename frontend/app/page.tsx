@@ -13,6 +13,7 @@ interface OrderBookData {
 export default function Home() {
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null)
   const [connectionStatus, setConnectionStatus] = useState<string>('กำลังเชื่อมต่อ...')
+  const [lastUpdate, setLastUpdate] = useState<number>(0)
   const wsRef = useRef<WebSocket | null>(null)
 
   useEffect(() => {
@@ -53,7 +54,8 @@ export default function Home() {
           websocket.send(JSON.stringify({ type: 'pong' }))
         } else if (data.type === 'orderbook') {
           console.log('Setting orderbook data...') // Debug log
-          setOrderBook(data)
+          setOrderBook({...data}) // Force new object reference
+          setLastUpdate(Date.now()) // Force re-render
         }
       } catch (error) {
         console.error('Error parsing message:', error)
@@ -211,7 +213,7 @@ export default function Home() {
 
       {orderBook && (
         <div className="mt-5 text-center text-gray-400 text-sm max-w-6xl mx-auto">
-          อัพเดทล่าสุด: {new Date(orderBook.ts).toLocaleString('th-TH')}
+          อัพเดทล่าสุด: {new Date(orderBook.ts).toLocaleString('th-TH')} | Updates: {lastUpdate}
         </div>
       )}
     </div>

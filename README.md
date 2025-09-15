@@ -73,6 +73,8 @@ The application is deployed and accessible online:
 
 You can access the live demo directly without local installation. The frontend automatically connects to the deployed backend for real-time data.
 
+**Note**: If you leave the demo page open for an extended period without activity, the Render backend service may go to sleep. When you return or refresh the page, you'll see the deployment process as the backend wakes up and re-establishes the real-time connection to Binance.
+
 ## Features
 
 ### Backend Capabilities
@@ -216,6 +218,7 @@ Monitor WebSocket messages in browser:
 - **Geographic Restrictions**: Application uses Binance US API to avoid regional blocking
 - **Connection Timeouts**: Automatic reconnection handles temporary network issues
 - **Data Latency**: Normal latency is 100-200ms from Binance to display
+- **Render Service Sleep**: The backend deployed on Render may sleep after periods of inactivity. When accessing the live demo after inactivity, you'll see a loading screen with deployment logs as the service wakes up and reconnects to Binance
 
 ## Development Notes
 

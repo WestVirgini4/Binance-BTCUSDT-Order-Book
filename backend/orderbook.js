@@ -19,7 +19,7 @@ class OrderBook {
 
   async fetchSnapshot() {
     try {
-      const response = await axios.get('https://api.binance.us/api/v3/depth?symbol=BTCUSDT&limit=1000');
+      const response = await axios.get('https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=1000');
       const { lastUpdateId, bids, asks } = response.data;
 
       this.lastUpdateId = lastUpdateId;
@@ -42,15 +42,17 @@ class OrderBook {
   }
 
   connectBinanceWebSocket() {
-    this.binanceWs = new WebSocket('wss://stream.binance.us:9443/ws/btcusdt@depth@100ms');
+    console.log('กำลังเชื่อมต่อ Binance WebSocket...');
+    this.binanceWs = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@depth@100ms');
 
     this.binanceWs.on('open', () => {
-      console.log('เชื่อมต่อ Binance WebSocket สำเร็จ');
+      console.log('✅ เชื่อมต่อ Binance WebSocket สำเร็จ');
     });
 
     this.binanceWs.on('message', (data) => {
       try {
         const event = JSON.parse(data);
+        console.log('📥 ได้รับข้อมูลจาก Binance:', event.E || 'unknown');
         this.processDepthUpdate(event);
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
@@ -70,9 +72,14 @@ class OrderBook {
   processDepthUpdate(event) {
     const { u: updateId, U: firstUpdateId, b: bids, a: asks } = event;
 
-    if (updateId <= this.lastUpdateId) return;
+    if (updateId <= this.lastUpdateId) {
+      console.log('⏭️ ข้าม update เก่า:', updateId, '<=', this.lastUpdateId);
+      return;
+    }
 
     if (firstUpdateId <= this.lastUpdateId + 1 && updateId >= this.lastUpdateId + 1) {
+      console.log('🔄 กำลังอัพเดท orderbook:', { firstUpdateId, updateId, bidsCount: bids.length, asksCount: asks.length });
+
       bids.forEach(([price, qty]) => {
         if (qty === '0.00000000') {
           this.bids.delete(price);
@@ -90,7 +97,10 @@ class OrderBook {
       });
 
       this.lastUpdateId = updateId;
+      console.log('📤 ส่งข้อมูลไปยัง', this.clients.size, 'clients');
       this.broadcastOrderBook();
+    } else {
+      console.log('❌ Update sequence ไม่ต่อเนื่อง:', { firstUpdateId, lastUpdateId: this.lastUpdateId, updateId });
     }
   }
 

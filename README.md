@@ -64,6 +64,15 @@ The frontend application will run on `http://localhost:3000`
 
 Open your web browser and navigate to `http://localhost:3000` to view the order book interface.
 
+## Live Demo
+
+The application is deployed and accessible online:
+
+- **Frontend (Vercel)**: https://binance-btcusdt-order-book.vercel.app/
+- **Backend API (Render)**: https://binance-btcusdt-order-book.onrender.com/
+
+You can access the live demo directly without local installation. The frontend automatically connects to the deployed backend for real-time data.
+
 ## Features
 
 ### Backend Capabilities

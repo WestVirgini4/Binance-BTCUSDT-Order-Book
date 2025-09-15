@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface OrderBookData {
   type: string
@@ -13,13 +13,13 @@ interface OrderBookData {
 export default function Home() {
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null)
   const [connectionStatus, setConnectionStatus] = useState<string>('กำลังเชื่อมต่อ...')
-  const [ws, setWs] = useState<WebSocket | null>(null)
+  const wsRef = useRef<WebSocket | null>(null)
 
   useEffect(() => {
     connectWebSocket()
     return () => {
-      if (ws) {
-        ws.close()
+      if (wsRef.current) {
+        wsRef.current.close()
       }
     }
   }, [])
@@ -32,7 +32,12 @@ export default function Home() {
   }, [orderBook])
 
   const connectWebSocket = () => {
+    if (wsRef.current) {
+      wsRef.current.close()
+    }
+
     const websocket = new WebSocket('wss://binance-btcusdt-order-book.onrender.com/orderbook')
+    wsRef.current = websocket
 
     websocket.onopen = () => {
       setConnectionStatus('เชื่อมต่อสำเร็จ ✅')
@@ -42,10 +47,12 @@ export default function Home() {
     websocket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
+        console.log('Received message:', data.type) // Debug log
 
         if (data.type === 'ping') {
           websocket.send(JSON.stringify({ type: 'pong' }))
         } else if (data.type === 'orderbook') {
+          console.log('Setting orderbook data...') // Debug log
           setOrderBook(data)
         }
       } catch (error) {
@@ -62,8 +69,6 @@ export default function Home() {
       console.error('WebSocket error:', error)
       setConnectionStatus('เกิดข้อผิดพลาด ❌')
     }
-
-    setWs(websocket)
   }
 
   const calculateCumulativeTotal = (orders: [string, string][]) => {

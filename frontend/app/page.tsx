@@ -24,6 +24,13 @@ export default function Home() {
     }
   }, [])
 
+  // Debug: log when orderBook state changes
+  useEffect(() => {
+    if (orderBook) {
+      console.log('OrderBook updated:', orderBook)
+    }
+  }, [orderBook])
+
   const connectWebSocket = () => {
     const websocket = new WebSocket('wss://binance-btcusdt-order-book.onrender.com/orderbook')
 

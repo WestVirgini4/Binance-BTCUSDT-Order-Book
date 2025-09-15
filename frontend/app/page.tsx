@@ -54,8 +54,11 @@ export default function Home() {
           websocket.send(JSON.stringify({ type: 'pong' }))
         } else if (data.type === 'orderbook') {
           console.log('Setting orderbook data...') // Debug log
-          setOrderBook({...data}) // Force new object reference
-          setLastUpdate(Date.now()) // Force re-render
+          setOrderBook(prevData => {
+            console.log('Previous data:', prevData?.ts, 'New data:', data.ts)
+            return {...data}
+          })
+          setLastUpdate(Date.now())
         }
       } catch (error) {
         console.error('Error parsing message:', error)

@@ -25,7 +25,7 @@ export default function Home() {
   }, [])
 
   const connectWebSocket = () => {
-    const websocket = new WebSocket('ws://localhost:3001/orderbook')
+    const websocket = new WebSocket('wss://binance-btcusdt-order-book.onrender.com/orderbook')
 
     websocket.onopen = () => {
       setConnectionStatus('เชื่อมต่อสำเร็จ ✅')

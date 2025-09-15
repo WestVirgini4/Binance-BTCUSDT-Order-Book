@@ -21,6 +21,19 @@ wss.on('connection', (ws) => {
   orderBook.addClient(ws);
 });
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: '🪙 Binance BTCUSDT Order Book API',
+    status: 'Running',
+    endpoints: {
+      health: '/health',
+      websocket: '/orderbook'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Basic health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

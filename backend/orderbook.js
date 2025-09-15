@@ -19,7 +19,7 @@ class OrderBook {
 
   async fetchSnapshot() {
     try {
-      const response = await axios.get('https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=1000');
+      const response = await axios.get('https://api.binance.us/api/v3/depth?symbol=BTCUSDT&limit=1000');
       const { lastUpdateId, bids, asks } = response.data;
 
       this.lastUpdateId = lastUpdateId;
@@ -43,7 +43,7 @@ class OrderBook {
 
   connectBinanceWebSocket() {
     console.log('กำลังเชื่อมต่อ Binance WebSocket...');
-    this.binanceWs = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@depth@100ms');
+    this.binanceWs = new WebSocket('wss://stream.binance.us:9443/ws/btcusdt@depth@100ms');
 
     this.binanceWs.on('open', () => {
       console.log('✅ เชื่อมต่อ Binance WebSocket สำเร็จ');
